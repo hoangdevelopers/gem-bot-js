@@ -61,6 +61,7 @@ class AotFireSpiritSkill extends AotMove {
     this.targetId = enemiesHeroAlive.reduce(function (prev, current) {
       return ((prev?.attack || 0) > (current?.attack || 0)) ? prev : current;
     }, null).id;
+    console.log('AotFireSpiritSkill', this.targetId, enemiesHeroAlive)
   }
 }
 
@@ -298,7 +299,7 @@ class AoTStrategy {
     const posibleMoves = this.getAllPosibleMove(state);
     
     let currentBestMove = this.bestOption(state, posibleMoves);
-    console.log(`${AoTStrategy.name}: posibleMoves ${posibleMoves.length}`, currentBestMove);
+    console.log(`${AoTStrategy.name}: posibleMoves ${posibleMoves.length}`, currentBestMove, posibleMoves);
     let currentBestMoveScore = -1;
     for (const move of posibleMoves) {
       console.log(
@@ -376,8 +377,7 @@ class AoTStrategy {
   }
 
   getAllPosibleSkillCast(state) {
-    const currentPlayer = state.getCurrentPlayer();
-    const castableHeros = currentPlayer.getCastableHeros();
+    const castableHeros = state.botPlayer.getCastableHeros();
     console.log(`${AoTStrategy.name}: castableHeros ${castableHeros.length}`);
 
     const posibleCastOnHeros = castableHeros.map((hero) =>
@@ -397,7 +397,7 @@ class AoTStrategy {
 
   posibleCastOnHero(hero, state) {
     const enemiesHeroAlive = state.enemyPlayer.getHerosAlive();
-    const heroAlive = state.getCurrentPlayer().getHerosAlive();
+    const heroAlive = state.botPlayer.getHerosAlive();
     if (
       [
         "AIR_SPIRIT",
