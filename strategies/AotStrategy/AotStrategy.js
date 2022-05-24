@@ -51,12 +51,27 @@ class AotAutoCastSkill extends AotMove {
   }
 }
 
-class AotBuffAllAlliesSkill extends AotMove {
-  type = "BUFF_ALL_ALLIES_SKILL";
+class AotFireSpiritSkill extends AotMove {
+  type = "FIRE_SPIRIT_SKILL";
   isCastSkill = true;
-  constructor(hero) {
+  targetId;
+  constructor(hero, enemiesHeroAlive) {
     super();
     this.hero = hero;
+    this.targetId = enemiesHeroAlive.reduce(function (prev, current) {
+      return ((prev?.attack || 0) > (current?.attack || 0)) ? prev : current;
+    }, null).id;
+  }
+}
+
+class AotSeaSpiritSkill extends AotMove {
+  type = "SEA_SPIRIT_SKILL";
+  isCastSkill = true;
+  targetId;
+  constructor(hero, heroAlive) {
+    super();
+    this.hero = hero;
+    this.targetId = (heroAlive.find(h => h.id === 'CERBERUS') || heroAlive.find(h => h.id === 'FIRE_SPIRIT') || heroAlive[0]).id;
   }
 }
 
@@ -69,17 +84,7 @@ class AotAllEnemiesAndSelectGemsSkill extends AotMove {
   }
 }
 
-class AotAnEnemiesSkill extends AotMove {
-  type = "AN_ENEMIES_SKILL";
-  isCastSkill = true;
-  targetId;
-  isTargetAllyOrNot = false;
-  constructor(hero, targetId) {
-    super();
-    this.hero = hero;
-    this.targetId = targetId;
-  }
-}
+
 
 class AotSwapGem extends AotMove {
   type = "SWAP_GEM";
@@ -384,14 +389,15 @@ class AoTStrategy {
 
     const allPosibleCasts = [].concat(...posibleCastOnHeros);
     console.log(
-      `${AoTStrategy.name}: allPosibleCasts ${allPosibleCasts.length}`
+      `${AoTStrategy.name}: allPosibleCasts ${allPosibleCasts.length}`, allPosibleCasts
     );
 
     return allPosibleCasts;
   }
 
   posibleCastOnHero(hero, state) {
-    let casts = [];
+    const enemiesHeroAlive = state.enemyPlayer.getHerosAlive();
+    const heroAlive = state.getCurrentPlayer().getHerosAlive();
     if (
       [
         "AIR_SPIRIT",
@@ -403,14 +409,11 @@ class AoTStrategy {
         "MERMAID",
       ].includes(hero.id)
     ) {
-      casts = [new AotAutoCastSkill(hero)];
-    } else if (["FIRE_SPIRIT", "NEFIA", "DISPATER"].includes(hero.id)) {
-      const enemiesAllies = state.enemyPlayer.getHerosAlive();
-      casts = enemiesAllies.length
-        ? [new AotAnEnemiesSkill(hero, enemiesAllies[0].id)]
-        : [];
+      return [new AotAutoCastSkill(hero)];
     }
-    return casts;
+    if (hero.id === 'SEA_SPIRIT') return [new AotSeaSpiritSkill(hero, heroAlive)]
+    if (hero.id === 'FIRE_SPIRIT') return [new AotFireSpiritSkill(hero, enemiesHeroAlive)]
+    return [];
   }
 
   getAllPosibleGemSwap(state) {

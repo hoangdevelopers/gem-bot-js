@@ -369,7 +369,7 @@ function isBotTurn() {
 
 function SendCastSkill(heroCastSkill, { targetId, selectedGem, gemIndex, isTargetAllyOrNot } = {}) {
 	var data = new SFS2X.SFSObject();
-
+  console.log('SendCastSkill heroCastSkill', heroCastSkill)
 	data.putUtfString("casterId", heroCastSkill.id.toString());
 	if(targetId) {
 		data.putUtfString("targetId", targetId);
