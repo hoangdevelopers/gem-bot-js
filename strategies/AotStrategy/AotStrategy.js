@@ -42,12 +42,42 @@ class AotMove {
   type = "";
 }
 
-class AotCastSkill extends AotMove {
-  type = "CAST_SKILL";
+class AotAutoCastSkill extends AotMove {
+  type = "AUTO_CAST_SKILL";
   isCastSkill = true;
   constructor(hero) {
     super();
     this.hero = hero;
+  }
+}
+
+class AotBuffAllAlliesSkill extends AotMove {
+  type = "BUFF_ALL_ALLIES_SKILL";
+  isCastSkill = true;
+  constructor(hero) {
+    super();
+    this.hero = hero;
+  }
+}
+
+class AotAllEnemiesAndSelectGemsSkill extends AotMove {
+  type = "ALL_ENEMIES_AND_SELECT_GEMS_SKILL";
+  isCastSkill = true;
+  constructor(hero) {
+    super();
+    this.hero = hero;
+  }
+}
+
+class AotAnEnemiesSkill extends AotMove {
+  type = "AN_ENEMIES_SKILL";
+  isCastSkill = true;
+  targetId;
+  isTargetAllyOrNot = false;
+  constructor(hero, targetId) {
+    super();
+    this.hero = hero;
+    this.targetId = targetId;
   }
 }
 
@@ -227,7 +257,7 @@ class AoTStrategy {
     console.log(action);
     if (action.isCastSkill) {
       console.log(`${AoTStrategy.name}: isCastSkill`);
-      this.castSkillHandle(action.hero);
+      this.castSkillHandle(action.hero, { ...action });
     } else if (action.isSwap) {
       console.log(`${AoTStrategy.name}: isSwap`);
       this.swapGemHandle(action.swap);
@@ -238,13 +268,32 @@ class AoTStrategy {
     console.log(`${AoTStrategy.name}: getCurrentState`);
     return this.state.clone();
   }
-
+  bestOption(state, posibleMoves) {
+    const posSwap = posibleMoves.filter(p => p.isSwap);
+    const recommendGemType = Array.from(state.botPlayer.getRecommendGemType());
+    const posContainRecommendGem = posSwap.filter(
+      (p) => p.isSwap && recommendGemType.includes(p.swap.type)
+    );
+    const posRecommendMax = posContainRecommendGem.reduce(function (prev, current) {
+      return ((prev?.swap?.sizeMatch || 0) > (current?.swap?.sizeMatch || 0)) ? prev : current;
+    }, null);
+    console.log('posRecommendMax', posRecommendMax)
+    if (posRecommendMax?.swap?.sizeMatch > 4) return posRecommendMax;
+    const posMax = posSwap.reduce(function (prev, current) {
+      return (prev?.swap?.sizeMatch || 0) > (current?.swap?.sizeMatch || 0) ? prev : current;
+    }, null);
+    if (posMax?.swap?.sizeMatch > 4) return posMax;
+    const skills = posibleMoves.filter(p => p.isCastSkill);
+    if (skills.length) return skills[0];
+    if (posContainRecommendGem.length) return posContainRecommendGem[0];
+    return posibleMoves[0];
+  }
   chooseBestPosibleMove(state, deep = 2) {
     console.log(`${AoTStrategy.name}: chooseBestPosibleMove`);
     const posibleMoves = this.getAllPosibleMove(state);
-    console.log(`${AoTStrategy.name}: posibleMoves ${posibleMoves.length}`);
-
-    let currentBestMove = posibleMoves[0];
+    
+    let currentBestMove = this.bestOption(state, posibleMoves);
+    console.log(`${AoTStrategy.name}: posibleMoves ${posibleMoves.length}`, currentBestMove);
     let currentBestMoveScore = -1;
     for (const move of posibleMoves) {
       console.log(
@@ -342,8 +391,25 @@ class AoTStrategy {
   }
 
   posibleCastOnHero(hero, state) {
-    // const casts = [new AotCastSkill(hero)];
-    const casts = [];
+    let casts = [];
+    if (
+      [
+        "AIR_SPIRIT",
+        "CERBERUS",
+        "ORTHUR",
+        "MONK",
+        "THUNDER_GOD",
+        "SEA_GOD",
+        "MERMAID",
+      ].includes(hero.id)
+    ) {
+      casts = [new AotAutoCastSkill(hero)];
+    } else if (["FIRE_SPIRIT", "NEFIA", "DISPATER"].includes(hero.id)) {
+      const enemiesAllies = state.enemyPlayer.getHerosAlive();
+      casts = enemiesAllies.length
+        ? [new AotAnEnemiesSkill(hero, enemiesAllies[0].id)]
+        : [];
+    }
     return casts;
   }
 
@@ -372,3 +438,4 @@ window.strategies = {
   ...(window.strategies || {}),
   [AoTStrategy.name]: AoTStrategy,
 };
+

@@ -35,7 +35,7 @@ var currentPlayerId;
 var grid;
 
 const username = "";
-const token = "bot";
+const token = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJob2FuZy5uZ3V5ZW5kdWMiLCJhdXRoIjoiUk9MRV9VU0VSIiwiTEFTVF9MT0dJTl9USU1FIjoxNjUzMzIxOTgyMzk0LCJleHAiOjE2NTUxMjE5ODJ9.sKAvZHroIFZbSFNMb6hqDzLi6uqoJNKN_wf-6CvLMY6kpzUkszfcTsvZypVKpNlRS0XM3WA8VNmOoz07wTQN-A";
 var visualizer = new Visualizer({ el: '#visual' });
 var params = window.params;
 var strategy = window.strategy;
@@ -179,6 +179,7 @@ function reset() {
 function onLoginBtnClick() {
 	let uName = username || document.querySelector('#accountIn').value;
 	trace("Try login as " + uName);
+	trace("token " + token);
 
 	let data = new SFS2X.SFSObject();
 	data.putUtfString("BATTLE_MODE", "NORMAL");

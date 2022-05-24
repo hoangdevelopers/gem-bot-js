@@ -124,12 +124,11 @@ class Grid {
         this.swap(currentGem, swapGem);
 
         let matchGems = this.matchesAt(parseInt(currentGem.x), parseInt(currentGem.y));
-
         this.swap(currentGem, swapGem);
 
 
         if (matchGems.size > 0) {
-            listMatchGem.push(new GemSwapInfo(currentGem.index, swapGem.index, matchGems.length, currentGem.type));
+            listMatchGem.push(new GemSwapInfo(currentGem.index, swapGem.index, matchGems.size, currentGem.type));
         }
     }
 
@@ -338,7 +337,7 @@ class Grid {
         const cloned = new Grid({ size: () => 0 }, new Set());
         cloned.gems = this.gems.map(gem => gem.clone());
         cloned.gemTypes = new Set(Array.from(this.gemTypes));
-        this.myHeroGemType = new Set(Array.from(this.myHeroGemType));
+        this.myHeroGemType = new Set(Array.from(this.myHeroGemType || []));
         return cloned;
     }
 }

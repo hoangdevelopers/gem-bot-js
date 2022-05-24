@@ -39,9 +39,9 @@ class Player
 
     getRecommendGemType() {
         this.heroGemType = new Set();
-
-        for (let i = 0; i < this.heroes.length; i++){
-            let hero = this.heroes[i];
+        const herosNotFullMana = this.heroes.filter(h => !h.isFullMana())
+        for (let i = 0; i < herosNotFullMana.length; i++){
+            let hero = herosNotFullMana[i];
 
             for (let j = 0; j < hero.gemTypes.length; j++){
                 let gt = hero.gemTypes[j];
