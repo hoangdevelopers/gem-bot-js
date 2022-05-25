@@ -307,13 +307,17 @@ class AoTStrategy {
     }
     // dung skill
     const skills = posibleMoves.filter(p => p.isCastSkill);
-    if (skills.length) return this.bestSkill(state, skills);
+    const bestSkill = this.bestSkill(state, skills);
+    if (bestSkill) return bestSkill;
     // an 4 gems tro xuong
     if (posContainRecommendGem.length) return posContainRecommendGem[0];
+    // an kiem
+    if (swordGems.length) return swordGems[0];
     return posibleMoves[0];
   }
   bestSkill(state, _skills) {
-    const skills = [..._skills];
+    if (!_skills.length) return null;
+    let skills = [..._skills];
     const hasFireManaEnemies = state.enemyPlayer.getHerosAlive().some(h => FIRE_MANA_HERO.includes(h.id));
     if (hasFireManaEnemies) {
       const atkSkills = _skills.filter(s => ATK_HEROS.includes(s.hero.id))
