@@ -327,7 +327,7 @@ class AoTStrategy {
     const enemiesMostStrong = state.enemyPlayer.getHerosAlive().reduce(function (prev, current) {
       return ((prev?.attack || 0) > (current?.attack || 0)) ? prev : current;
     }, null);
-    if (hasBuffEnemies && enemiesMostStrong.attack < 10) skills = skills.filter(s => !FIRE_HP_BASE_ON_ENEMIES_ATK_HEROS.includes(s.hero.id));
+    if (hasBuffEnemies && enemiesMostStrong.attack < 10 && state.botPlayer.getHerosAlive().length > 1) skills = skills.filter(s => !FIRE_HP_BASE_ON_ENEMIES_ATK_HEROS.includes(s.hero.id));
     return skills[0]
   }
   chooseBestPosibleMove(state, deep = 2) {
