@@ -342,26 +342,26 @@ class AoTStrategy {
     
     let currentBestMove = this.bestOption(state, posibleMoves);
     console.log(`${AoTStrategy.name}: posibleMoves ${posibleMoves.length}`, currentBestMove, posibleMoves);
-    let currentBestMoveScore = -1;
-    for (const move of posibleMoves) {
-      console.log(
-        `${AoTStrategy.name}: currentBestMove  ${posibleMoves.indexOf(move)}`
-      );
-      console.log(
-        `${AoTStrategy.name}: currentBestMoveScore  ${currentBestMoveScore}`
-      );
+    // let currentBestMoveScore = -1;
+    // for (const move of posibleMoves) {
+    //   console.log(
+    //     `${AoTStrategy.name}: currentBestMove  ${posibleMoves.indexOf(move)}`
+    //   );
+    //   console.log(
+    //     `${AoTStrategy.name}: currentBestMoveScore  ${currentBestMoveScore}`
+    //   );
 
-      const futureState = this.seeFutureState(move, state, deep);
-      const simulateMoveScore = this.compareScoreOnStates(state, futureState);
-      console.log(
-        `${AoTStrategy.name}: simulateMoveScore  ${simulateMoveScore}`
-      );
+    //   const futureState = this.seeFutureState(move, state, deep);
+    //   const simulateMoveScore = this.compareScoreOnStates(state, futureState);
+    //   console.log(
+    //     `${AoTStrategy.name}: simulateMoveScore  ${simulateMoveScore}`
+    //   );
 
-      if (simulateMoveScore > currentBestMove) {
-        currentBestMove = move;
-        currentBestMoveScore = simulateMoveScore;
-      }
-    }
+    //   if (simulateMoveScore > currentBestMove) {
+    //     currentBestMove = move;
+    //     currentBestMoveScore = simulateMoveScore;
+    //   }
+    // }
     return currentBestMove;
   }
 
