@@ -1,3 +1,7 @@
+const BUFF_HEROS = ['MONK', 'SEA_SPIRIT'];
+const FIRE_MANA_HERO = ['SEA_GOD'];
+const FIRE_HP_BASE_ON_ENEMIES_ATK_HEROS = ['FIRE_SPIRIT'];
+const ATK_HEROS = ['FIRE_SPIRIT', 'SEA_GOD', 'CERBERUS', 'DISPATER'];
 class AotGameState {
   constructor({ game, grid, botPlayer, enemyPlayer }) {
     this.game = game;
@@ -275,6 +279,9 @@ class AoTStrategy {
     return this.state.clone();
   }
   bestOption(state, posibleMoves) {
+    // an 5 gems
+    const firstEnemyHero = state.enemyPlayer.getHerosAlive()[0];
+    const firstAllieHero = state.botPlayer.getHerosAlive()[0];
     const posSwap = posibleMoves.filter(p => p.isSwap);
     const recommendGemType = Array.from(state.botPlayer.getRecommendGemType());
     const posContainRecommendGem = posSwap.filter(
@@ -283,16 +290,41 @@ class AoTStrategy {
     const posRecommendMax = posContainRecommendGem.reduce(function (prev, current) {
       return ((prev?.swap?.sizeMatch || 0) > (current?.swap?.sizeMatch || 0)) ? prev : current;
     }, null);
-    console.log('posRecommendMax', posRecommendMax)
     if (posRecommendMax?.swap?.sizeMatch > 4) return posRecommendMax;
     const posMax = posSwap.reduce(function (prev, current) {
       return (prev?.swap?.sizeMatch || 0) > (current?.swap?.sizeMatch || 0) ? prev : current;
     }, null);
     if (posMax?.swap?.sizeMatch > 4) return posMax;
+    // kill tuong = an kiem
+    
+    const swordGems = posSwap.filter(p => p.type == GemType.SWORD);
+    if (swordGems.length) {
+      const bestSword = swordGems.reduce(function (prev, current) {
+        return ((prev?.swap?.sizeMatch || 0) > (current?.swap?.sizeMatch || 0)) ? prev : current;
+      }, null);
+      const damge = firstAllieHero.attack + Math.max(bestSword.swap.sizeMatch - 3, 0) * 5;
+      if (damge >= firstEnemyHero.hp) return bestSword;
+    }
+    // dung skill
     const skills = posibleMoves.filter(p => p.isCastSkill);
-    if (skills.length) return skills[0];
+    if (skills.length) return this.bestSkill(state, skills);
+    // an 4 gems tro xuong
     if (posContainRecommendGem.length) return posContainRecommendGem[0];
     return posibleMoves[0];
+  }
+  bestSkill(state, _skills) {
+    const skills = [..._skills];
+    const hasFireManaEnemies = state.enemyPlayer.getHerosAlive().some(h => FIRE_MANA_HERO.includes(h.id));
+    if (hasFireManaEnemies) {
+      const atkSkills = _skills.filter(s => ATK_HEROS.includes(s.hero.id))
+      return atkSkills[0] || _skills[0];
+    }
+    const hasBuffEnemies = state.enemyPlayer.getHerosAlive().some(h => BUFF_HEROS.includes(h.id));
+    const enemiesMostStrong = state.enemyPlayer.getHerosAlive().reduce(function (prev, current) {
+      return ((prev?.attack || 0) > (current?.attack || 0)) ? prev : current;
+    }, null);
+    if (hasBuffEnemies && enemiesMostStrong.attack < 10) skills = skills.filter(s => !FIRE_HP_BASE_ON_ENEMIES_ATK_HEROS.includes(s.hero.id));
+    return skills[0]
   }
   chooseBestPosibleMove(state, deep = 2) {
     console.log(`${AoTStrategy.name}: chooseBestPosibleMove`);
