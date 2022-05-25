@@ -2,6 +2,8 @@ const BUFF_HEROS = ['MONK', 'SEA_SPIRIT'];
 const FIRE_MANA_HERO = ['SEA_GOD'];
 const FIRE_HP_BASE_ON_ENEMIES_ATK_HEROS = ['FIRE_SPIRIT'];
 const ATK_HEROS = ['FIRE_SPIRIT', 'SEA_GOD', 'CERBERUS', 'DISPATER'];
+const NO_MANA_HEROS = ['ELIZAH'];
+const SUPPER_TANK_HEROS = ['ELIZAH'];
 class AotGameState {
   constructor({ game, grid, botPlayer, enemyPlayer }) {
     this.game = game;
@@ -62,7 +64,8 @@ class AotFireSpiritSkill extends AotMove {
   constructor(hero, enemiesHeroAlive) {
     super();
     this.hero = hero;
-    this.targetId = enemiesHeroAlive.reduce(function (prev, current) {
+    const enemiesHeroAliveWithoutSupperTank = enemiesHeroAlive.filter(h => !SUPPER_TANK_HEROS.includes(h.id))
+    this.targetId = (enemiesHeroAliveWithoutSupperTank.length ? enemiesHeroAliveWithoutSupperTank : enemiesHeroAlive).reduce(function (prev, current) {
       return ((prev?.attack || 0) > (current?.attack || 0)) ? prev : current;
     }, null).id;
     console.log('AotFireSpiritSkill', this.targetId, enemiesHeroAlive)
@@ -328,6 +331,9 @@ class AoTStrategy {
       return ((prev?.attack || 0) > (current?.attack || 0)) ? prev : current;
     }, null);
     if (hasBuffEnemies && enemiesMostStrong.attack < 10 && state.botPlayer.getHerosAlive().length > 1) skills = skills.filter(s => !FIRE_HP_BASE_ON_ENEMIES_ATK_HEROS.includes(s.hero.id));
+    const enemiesFireSpirit = state.enemyPlayer.getHerosAlive().find(h => h.id === 'FIRE_SPIRIT');
+    // neu fire spirit full mana thi ko buff
+    if (enemiesFireSpirit && enemiesFireSpirit.isFullMana()) skills = skills.filter(s => !BUFF_HEROS.includes(s.hero.id)) 
     return skills[0]
   }
   chooseBestPosibleMove(state, deep = 2) {
@@ -432,6 +438,7 @@ class AoTStrategy {
   }
 
   posibleCastOnHero(hero, state) {
+    if (NO_MANA_HEROS.includes(hero.id)) return [];
     const enemiesHeroAlive = state.enemyPlayer.getHerosAlive();
     const heroAlive = state.botPlayer.getHerosAlive();
     if (
