@@ -37,8 +37,8 @@ const HEIGHT = 8;
 const WIDTH = 8;
 
 class Gem {
-
     constructor(index, type, gemModifier) {
+        this.signature = Math.random();
         this.index = index;
         this.type = type;
 
@@ -59,12 +59,17 @@ class Gem {
         return this.type === other.type;
     }
 
+    sameOne(other) {
+        return this.signature == other.signature;
+    }
+
     markAsRemoved() {
         this.removed = true;
     }
 
     clone() {
-        const cloned = new Gem(this.index, this.type);
+        const cloned = new Gem(this.index, this.type, this.modifier);
+        cloned.signature = this.signature;
         return cloned;
     }
 }

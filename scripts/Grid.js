@@ -4,6 +4,10 @@ function union (sets) {
     }, new Set());
   }
 
+class GridDistinction {
+    removedGems = [];
+    matchesSize = [];
+}
 class Grid {
     constructor(gemsCode, gemModifiers, gemTypes) {
         this.gems = [];
@@ -128,7 +132,7 @@ class Grid {
 
 
         if (matchGems.size > 0) {
-            listMatchGem.push(new GemSwapInfo(currentGem.index, swapGem.index, matchGems.size, currentGem.type));
+            listMatchGem.push(new GemSwapInfo(currentGem.index, swapGem.index, matchGems.size, currentGem.type, Array.from(matchGems).map(g => g.modifier)));
         }
     }
 
@@ -242,7 +246,8 @@ class Grid {
         console.log(currentGem, swapGem);
         this.swap(currentGem, swapGem);
         const allMatchGems = this.getAllMatches();
-        const result = this.performDistinction(allMatchGems);
+        const distinction = new GridDistinction();
+        const result = this.performDistinction(allMatchGems, distinction);
         return result;
     }
     
@@ -257,35 +262,67 @@ class Grid {
         return matches.length > 0 ? [union(matches)] : [];
     }
     
-    performDistinction(allMatchGems) {
-        const removedBatch = [];
+    performDistinction(allMatchGems, distinction) {
         for(const matchGems of allMatchGems) {
-            const removed = this.distinctGemBatch(matchGems)
-            removedBatch.push(removed);
+            this.distinctGemBatch(matchGems, distinction)
         }
         this.performReshape();
         const nextMatches = this.getAllMatches();
         if(nextMatches.length > 0) {
-            const nextRemoved = this.performDistinction(nextMatches);
-            removedBatch.push(...nextRemoved);
+            this.performDistinction(nextMatches, distinction);
         } 
-        return removedBatch;
+        return distinction;
     }
 
-    distinctGemBatch(gems) {
-        const removedGems = [];
-        const matchSize = gems.size;
-        const maxLinearMatchSize = this.maxLinearMatch(gems);
+    performGemEffect(gem, distinction) {
+        switch(gem.modifier) {
+            case GemModifier.EXPLODE_HORIZONTAL: {
+                this.performExplodeHorizontal(gem, distinction);
+            } 
+            case GemModifier.EXPLODE_VERTICAL: {
+                this.performExplodeVertical(gem, distinction);
+            } 
+            case GemModifier.EXPLODE_SQUARE: {
+                this.performExplodeSquare(gem, distinction);
+            } 
+        }
+    }
+
+    performExplodeHorizontal(gem, distinction) {
+        for(let x = 0; x < 8; x++) {
+            const targetGem = this.gemAt(x, gem.y);
+            if(!targetGem.sameOne(gem)) {
+                this.distinctGem(targetGem, distinction);
+            }
+        }
+    }
+
+    performExplodeVertical(gem, distinction) {
+        for(let y = 0; y < 8; y++) {
+            const targetGem = this.gemAt(gem.x, y);
+            if(!targetGem.sameOne(gem)) {
+                this.distinctGem(targetGem, distinction);
+            }
+        }
+    }
+
+    performExplodeSquare(gem, distinction) {
+        for(let x = gem.x - 1; x < gem.x + 1; x++) {
+            for(let y = gem.y - 1; y < gem.y + 1; y++) {
+                const targetGem = this.gemAt(gem.x, y);
+                if(!targetGem.sameOne(gem)) {
+                    this.distinctGem(targetGem, distinction);
+                }
+            }
+        }
+    }
+
+    distinctGemBatch(gems, distinction) {
+        distinction.matchesSize.push(gems.size);
         for(const gem of gems) {
-            const removed = this.distinctGem(gem);
-            removedGems.push(removed);
+            this.distinctGem(gem, distinction);
         }
-        const isExtraTurn = maxLinearMatchSize > 4;
-        return {
-            matchSize,
-            removedGems,
-            isExtraTurn
-        }
+        
     }
 
     maxLinearMatch(gems) {
@@ -303,9 +340,13 @@ class Grid {
 
     }
 
-    distinctGem(gem) {
+    distinctGem(gem, distinction) {
+        if(gem.removed || gem.locked) {
+            return;
+        }
         gem.removed = true;
-        return gem.clone();
+        this.performGemEffect(gem, distinction);
+        distinction.removedGems.push(gem.clone());
     }
 
     performReshape() {
@@ -337,7 +378,7 @@ class Grid {
         const cloned = new Grid({ size: () => 0 }, new Set());
         cloned.gems = this.gems.map(gem => gem.clone());
         cloned.gemTypes = new Set(Array.from(this.gemTypes));
-        this.myHeroGemType = new Set(Array.from(this.myHeroGemType || []));
+        cloned.myHeroGemType = new Set(Array.from(this.myHeroGemType));
         return cloned;
     }
 }

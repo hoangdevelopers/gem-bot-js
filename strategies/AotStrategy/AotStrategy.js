@@ -290,6 +290,7 @@ class AoTStrategy {
     const posContainRecommendGem = posSwap.filter(
       (p) => p.isSwap && recommendGemType.includes(p.swap.type)
     );
+    //Todo: 2 con it mau an kiem
     const posRecommendMax = posContainRecommendGem.reduce(function (prev, current) {
       return ((prev?.swap?.sizeMatch || 0) > (current?.swap?.sizeMatch || 0)) ? prev : current;
     }, null);
@@ -313,7 +314,7 @@ class AoTStrategy {
     const bestSkill = this.bestSkill(state, skills);
     if (bestSkill) return bestSkill;
     // an 4 gems tro xuong
-    if (posContainRecommendGem.length) return posContainRecommendGem[0];
+    if (posContainRecommendGem.length) return posContainRecommendGem[0]; //Todo: get max
     // an kiem
     if (swordGems.length) return swordGems[0];
     return posibleMoves[0];
@@ -462,7 +463,7 @@ class AoTStrategy {
   getAllPosibleGemSwap(state) {
     const allPosibleSwaps = state.grid.suggestMatch();
     console.log(
-      `${AoTStrategy.name}: allPosibleSwaps ${allPosibleSwaps.length}`
+      `${AoTStrategy.name}: allPosibleSwaps ${allPosibleSwaps.length}`, allPosibleSwaps
     );
 
     const allSwapMove = allPosibleSwaps.map((swap) => new AotSwapGem(swap));

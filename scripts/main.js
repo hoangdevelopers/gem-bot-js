@@ -44,10 +44,6 @@ visualizer.start();
 // Connect to Game server
 initConnection();
 
-// const params = new Proxy(new URLSearchParams(window.location.search), {
-// 	get: (searchParams, prop) => searchParams.get(prop),
-// });
-
 if (params.username) {
 	document.querySelector('#accountIn').value = params.username;
 }
@@ -289,33 +285,67 @@ function StartGame(gameSession, room) {
 		enemyPlayer,
 	});
 
-	if(strategy) {
+	if (strategy) {
 		strategy.setGame({
-			game: gameSession, 
-			grid, 
-			botPlayer, 
-			enemyPlayer, 
+			game: gameSession,
+			grid,
+			botPlayer,
+			enemyPlayer,
 		});
 
 		strategy.addSwapGemHandle(SendSwapGem);
-		strategy.addCastSkillHandle(SendCastSkill); 
+		strategy.addCastSkillHandle(SendCastSkill);
 	}
 
 }
 
 function AssignPlayers(room) {
-	let user1 = room.getPlayerList()[0];
-	trace("id user1: " + user1.name);
+
+	let users = room.getPlayerList();
+
+	let user1 = users[0];
+
+	let arrPlayerId1 = Array.from(user1._playerIdByRoomId).map(([name, value]) => (value));
+	let playerId1 = arrPlayerId1.length > 1 ? arrPlayerId1[1] : arrPlayerId1[0];
+
+
+	log("id user1: " + playerId1);
+
+	log("users.length : " + users.length);
+
+	if (users.length == 1) {
+		if (user1.isItMe) {
+
+			botPlayer = new Player(playerId1, "player1");
+			enemyPlayer = new Player(ENEMY_PLAYER_ID, "player2");
+		} else {
+			botPlayer = new Player(BOT_PLAYER_ID, "player2");
+			enemyPlayer = new Player(ENEMY_PLAYER_ID, "player1");
+		}
+		return;
+	}
+
+
+	let user2 = users[1];
+
+	let arrPlayerId2 = Array.from(user2._playerIdByRoomId).map(([name, value]) => (value));
+	let playerId2 = arrPlayerId2.length > 1 ? arrPlayerId2[1] : arrPlayerId2[0];
+
+
+	log("id user2: " + playerId2);
+
+	log("id user1: " + playerId1);
 
 	if (user1.isItMe) {
-		let playerId = Array.from(user1._playerIdByRoomId).map(([name, value]) => (value))[1];
-		
-		botPlayer = new Player(playerId, "player1");
-		enemyPlayer = new Player(ENEMY_PLAYER_ID, "player2");
-	} else {
-		botPlayer = new Player(BOT_PLAYER_ID, "player2");
-		enemyPlayer = new Player(ENEMY_PLAYER_ID, "player1");
+		botPlayer = new Player(playerId1, "player" + playerId1);
+		enemyPlayer = new Player(playerId2, "player" + playerId2);
 	}
+	else {
+		botPlayer = new Player(playerId2, "player" + playerId2);
+		enemyPlayer = new Player(playerId1, "player" + playerId1);
+	}
+
+
 }
 
 function EndGame() {
@@ -338,16 +368,15 @@ function SendFinishTurn(isFirstTurn) {
 
 
 function StartTurn(param) {
-	currentPlayerId = param.getInt("currentPlayerId");
-	visualizer.snapShot();
-
 	setTimeout(function() {
+		visualizer.snapShot();
+		currentPlayerId = param.getInt("currentPlayerId");
 		if (!isBotTurn()) {
 			trace("not isBotTurn");
 			return;
 		}
-		
-		if(strategy) {
+
+		if (strategy) {
 			strategy.playTurn();
 			return;
 		}
@@ -371,7 +400,7 @@ function SendCastSkill(heroCastSkill, { targetId, selectedGem, gemIndex, isTarge
 	var data = new SFS2X.SFSObject();
   console.log('SendCastSkill heroCastSkill', heroCastSkill)
 	data.putUtfString("casterId", heroCastSkill.id.toString());
-	if(targetId) {
+	if (targetId) {
 		data.putUtfString("targetId", targetId);
 	} else if (heroCastSkill.isHeroSelfSkill()) {
 		data.putUtfString("targetId", botPlayer.firstHeroAlive().id.toString());
@@ -379,18 +408,18 @@ function SendCastSkill(heroCastSkill, { targetId, selectedGem, gemIndex, isTarge
 		data.putUtfString("targetId", enemyPlayer.firstHeroAlive().id.toString());
 	}
 	console.log("selectedGem:  ", SelectGem());
-	if(selectedGem) {
+	if (selectedGem) {
 		data.putUtfString("selectedGem", selectedGem);
 	} {
 		data.putUtfString("selectedGem", SelectGem().toString());
 	}
-	if(gemIndex) {
+	if (gemIndex) {
 		data.putUtfString("gemIndex", gemIndex);
 	} {
 		data.putUtfString("gemIndex", GetRandomInt(64).toString());
 	}
 
-	if(isTargetAllyOrNot) {
+	if (isTargetAllyOrNot) {
 		data.putBool("isTargetAllyOrNot", isTargetAllyOrNot);
 	} else {
 		data.putBool("isTargetAllyOrNot", false);
@@ -403,7 +432,7 @@ function SendCastSkill(heroCastSkill, { targetId, selectedGem, gemIndex, isTarge
 }
 
 function SendSwapGem(swap) {
-	let indexSwap = swap ? swap.getIndexSwapGem() :  grid.recommendSwapGem();
+	let indexSwap = swap ? swap.getIndexSwapGem() : grid.recommendSwapGem();
 
 	log("sendExtensionRequest()|room:" + room.Name + "|extCmd:" + SWAP_GEM + "|index1: " + indexSwap[0] + " index2: " + indexSwap[1]);
 	trace("sendExtensionRequest()|room:" + room.Name + "|extCmd:" + SWAP_GEM + "|index1: " + indexSwap[0] + " index2: " + indexSwap[1]);
@@ -452,7 +481,7 @@ function HandleGems(paramz) {
 
 	grid.updateGems(gemCode, gemModifiers);
 
-	setTimeout(function () { SendFinishTurn(false) }, delaySwapGem);
+	// setTimeout(function () { SendFinishTurn(false) }, delaySwapGem);
 }
 
 function HandleHeroes(paramz) {

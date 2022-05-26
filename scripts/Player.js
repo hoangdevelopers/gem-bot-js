@@ -2,6 +2,7 @@ class Player
 {
     constructor(playerId, name)
     {
+        this.signature = Math.random();
         this.playerId = playerId;
         this.displayName = name;
 
@@ -21,6 +22,14 @@ class Player
     getCastableHeros() {
         let arr = this.heroes.filter(hero => hero.isAlive() && hero.isFullMana());
         return arr;
+    }
+
+    sameOne(other) {
+        return this.signature == other.signature;
+    }
+
+    isLose() {
+        return !this.firstHeroAlive();
     }
 
     anyHeroFullMana() {
@@ -61,6 +70,8 @@ class Player
         const cloned = new Player(this.playerId, this.displayName);
         cloned.heroes = this.heroes.map(hero => hero.clone());
         cloned.heroGemType = new Set(Array.from(this.heroGemType));
+        cloned.signature = this.signature;
+        cloned.metrics = this.metrics;
         return cloned;
     }
 }
