@@ -290,7 +290,6 @@ class AoTStrategy {
     const posContainRecommendGem = posSwap.filter(
       (p) => p.isSwap && recommendGemType.includes(p.swap.type)
     );
-    //Todo: 2 con it mau an kiem
     const posRecommendMax = posContainRecommendGem.reduce(function (prev, current) {
       return ((prev?.swap?.sizeMatch || 0) > (current?.swap?.sizeMatch || 0)) ? prev : current;
     }, null);
@@ -299,6 +298,13 @@ class AoTStrategy {
       return (prev?.swap?.sizeMatch || 0) > (current?.swap?.sizeMatch || 0) ? prev : current;
     }, null);
     if (posMax?.swap?.sizeMatch > 4) return posMax;
+    // an extra gems
+    const extra = posSwap.filter(p => p.swap.modifiers.includes(GemModifier.EXTRA_TURN)).reduce(function (prev, current) {
+      return (prev?.swap?.sizeMatch || 0) > (current?.swap?.sizeMatch || 0) ? prev : current;
+    }, null);
+    if (extra) return extra;
+    //Todo: 2 con it mau an kiem
+    
     // kill tuong = an kiem
     
     const swordGems = posSwap.filter(p => p.type == GemType.SWORD);
@@ -313,26 +319,56 @@ class AoTStrategy {
     const skills = posibleMoves.filter(p => p.isCastSkill);
     const bestSkill = this.bestSkill(state, skills);
     if (bestSkill) return bestSkill;
+    // an gems cung mau co modifier
+    const posContainRecommendGemHasHpManaAtk = posContainRecommendGem.filter(p => p.swap.modifiers.some(m => [
+      GemModifier.MANA,
+      GemModifier.BUFF_ATTACK,
+      GemModifier.MANA,
+      GemModifier.HIT_POINT,
+      GemModifier.EXPLODE_HORIZONTAL,
+      GemModifier.EXPLODE_VERTICAL,
+      GemModifier.EXPLODE_SQUARE
+    ].includes(m))).reduce(function (prev, current) {
+      return (prev?.swap?.sizeMatch || 0) > (current?.swap?.sizeMatch || 0) ? prev : current;
+    }, null);
+    if (posContainRecommendGemHasHpManaAtk) return posContainRecommendGemHasHpManaAtk;
     // an 4 gems tro xuong
-    if (posContainRecommendGem.length) return posContainRecommendGem[0]; //Todo: get max
+    if (posContainRecommendGem.length) return posContainRecommendGem.reduce(function (prev, current) {
+      return (prev?.swap?.sizeMatch || 0) > (current?.swap?.sizeMatch || 0) ? prev : current;
+    }, null);
     // an kiem
     if (swordGems.length) return swordGems[0];
     return posibleMoves[0];
   }
   bestSkill(state, _skills) {
     if (!_skills.length) return null;
+    const enemiesFireSpirit = state.enemyPlayer.getHerosAlive().find(h => h.id === 'FIRE_SPIRIT');
+    const alliesFireSpirit = state.botPlayer.getHerosAlive().find(h => h.id === 'FIRE_SPIRIT');
+    const skillFireSpirit = _skills.find(s => FIRE_MANA_HERO.includes(s.hero.id))
+    if (alliesFireSpirit && skillFireSpirit) {
+      const totalRedItems = state.grid.gems.filter(g => g.modifier === GemType.RED).length
+      const enemiesMaybeDie = state.enemyPlayer.getHerosAlive().find( h => !(h.id === 'ELIZAH' && h.isFullMana()) && (h.attack + totalRedItems) >= h.hp);
+      if(enemiesMaybeDie) {
+        skillFireSpirit.targetId = enemiesMaybeDie.id;
+        return skillFireSpirit;
+      }
+      // neu firespirit kill dc doi thu thi dung kill
+    }
     let skills = [..._skills];
     const hasFireManaEnemies = state.enemyPlayer.getHerosAlive().some(h => FIRE_MANA_HERO.includes(h.id));
     if (hasFireManaEnemies) {
       const atkSkills = _skills.filter(s => ATK_HEROS.includes(s.hero.id))
       return atkSkills[0] || _skills[0];
     }
-    const hasBuffEnemies = state.enemyPlayer.getHerosAlive().some(h => BUFF_HEROS.includes(h.id));
+    const buffEnemies = state.enemyPlayer.getHerosAlive().filter(h => BUFF_HEROS.includes(h.id));
     const enemiesMostStrong = state.enemyPlayer.getHerosAlive().reduce(function (prev, current) {
       return ((prev?.attack || 0) > (current?.attack || 0)) ? prev : current;
     }, null);
-    if (hasBuffEnemies && enemiesMostStrong.attack < 10 && state.botPlayer.getHerosAlive().length > 1) skills = skills.filter(s => !FIRE_HP_BASE_ON_ENEMIES_ATK_HEROS.includes(s.hero.id));
-    const enemiesFireSpirit = state.enemyPlayer.getHerosAlive().find(h => h.id === 'FIRE_SPIRIT');
+    if (
+      buffEnemies.length
+      && enemiesMostStrong.attack < 10
+      && state.botPlayer.getHerosAlive().length > 1
+      && alliesFireSpirit && alliesFireSpirit.hp > 15) skills = skills.filter(s => !FIRE_HP_BASE_ON_ENEMIES_ATK_HEROS.includes(s.hero.id));
     // neu fire spirit full mana thi ko buff
     if (enemiesFireSpirit && enemiesFireSpirit.isFullMana()) skills = skills.filter(s => !BUFF_HEROS.includes(s.hero.id)) 
     return skills[0]
