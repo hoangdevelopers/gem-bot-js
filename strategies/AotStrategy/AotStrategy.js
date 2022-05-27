@@ -333,12 +333,29 @@ class AoTStrategy {
     }, null);
     if (posContainRecommendGemHasHpManaAtk) return posContainRecommendGemHasHpManaAtk;
     // an 4 gems tro xuong
+    for (const hero of state.botPlayer.getHerosAlive()) {
+      if (hero.hp < 10) continue;
+      const posContainRecommendGem2 = posContainRecommendGem.filter(p => hero.gemTypes.includes(p.swap.type)).reduce(function (prev, current) {
+        return (prev?.swap?.sizeMatch || 0) > (current?.swap?.sizeMatch || 0) ? prev : current;
+      }, null);
+      if(posContainRecommendGem2) return posContainRecommendGem2;
+    }
+    // neu all allies it mau uu tien an kiem 
+    if (state.botPlayer.getHerosAlive().every(h => h.hp < 10) && swordGems.length) {
+      return swordGems.reduce(function (prev, current) {
+        return (prev?.swap?.sizeMatch || 0) > (current?.swap?.sizeMatch || 0) ? prev : current;
+      }, null);
+    }
     if (posContainRecommendGem.length) return posContainRecommendGem.reduce(function (prev, current) {
       return (prev?.swap?.sizeMatch || 0) > (current?.swap?.sizeMatch || 0) ? prev : current;
     }, null);
     // an kiem
-    if (swordGems.length) return swordGems[0];
-    return posibleMoves[0];
+    if (swordGems.length) return swordGems.reduce(function (prev, current) {
+      return (prev?.swap?.sizeMatch || 0) > (current?.swap?.sizeMatch || 0) ? prev : current;
+    }, null);
+    return posibleMoves.reduce(function (prev, current) {
+      return (prev?.swap?.sizeMatch || 0) > (current?.swap?.sizeMatch || 0) ? prev : current;
+    }, null);;
   }
   bestSkill(state, _skills) {
     if (!_skills.length) return null;
