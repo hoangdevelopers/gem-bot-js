@@ -171,15 +171,15 @@
 	</script>
 
 	<script type="text/javascript">
-		if(params && params.strategy) {
-			const strategyClass = window.strategies[params.strategy];
+		// if(params && params.strategy) {
+			const strategyClass = window.strategies['aot'];
 
 			if(!strategyClass) {
 				console.log(`Strategy ${window.params.strategy} is not defined.`);
 			} else {
 				window.strategy = strategyClass.factory();	
 			}
-		}
+		// }
 	</script>
 	
 	<script type="text/javascript" src="scripts/main.js"></script>
