@@ -396,11 +396,11 @@ class AoTStrategy {
       return atkSkills[0] || _skills[0];
     }
     const buffEnemies = state.enemyPlayer.getHerosAlive().filter(h => BUFF_HEROS.includes(h.id));
-    if (
-      buffEnemies.length
-      && buffEnemies.some(h => h.isFullMana())
-      && state.botPlayer.getHerosAlive().length > 1
-      && alliesFireSpirit && alliesFireSpirit.hp > 15) skills = skills.filter(s => !FIRE_HP_BASE_ON_ENEMIES_ATK_HEROS.includes(s.hero.id));
+    // if (
+    //   buffEnemies.length
+    //   && buffEnemies.some(h => h.isFullMana())
+    //   && state.botPlayer.getHerosAlive().length > 1
+    //   && alliesFireSpirit && alliesFireSpirit.hp > 15) skills = skills.filter(s => !FIRE_HP_BASE_ON_ENEMIES_ATK_HEROS.includes(s.hero.id));
     // neu fire spirit full mana thi ko buff
     if (enemiesFireSpirit && enemiesFireSpirit.isFullMana()) skills = skills.filter(s => !BUFF_HEROS.includes(s.hero.id)) 
     return skills[0]
