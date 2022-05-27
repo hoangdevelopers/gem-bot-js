@@ -64,7 +64,7 @@ class AotFireSpiritSkill extends AotMove {
   constructor(hero, enemiesHeroAlive) {
     super();
     this.hero = hero;
-    const enemiesHeroAliveWithoutSupperTank = enemiesHeroAlive.filter(h => !SUPPER_TANK_HEROS.includes(h.id))
+    const enemiesHeroAliveWithoutSupperTank = enemiesHeroAlive.filter(h => ![...SUPPER_TANK_HEROS, ...BUFF_HEROS].includes(h.id))
     this.targetId = (enemiesHeroAliveWithoutSupperTank.length ? enemiesHeroAliveWithoutSupperTank : enemiesHeroAlive).reduce(function (prev, current) {
       return ((prev?.attack || 0) > (current?.attack || 0)) ? prev : current;
     }, null).id;
@@ -319,6 +319,14 @@ class AoTStrategy {
     const skills = posibleMoves.filter(p => p.isCastSkill);
     const bestSkill = this.bestSkill(state, skills);
     if (bestSkill) return bestSkill;
+    // uu tien 4 kiem
+    if (swordGems.length) {
+      const an4kiem = swordGems.reduce(function (prev, current) {
+        return ((prev?.swap?.sizeMatch || 0) > (current?.swap?.sizeMatch || 0)) ? prev : current;
+      }, null);
+      if (an4kiem.swap?.sizeMatch > 3) return an4kiem;
+    }
+    
     // an gems cung mau co modifier
     const posContainRecommendGemHasHpManaAtk = posContainRecommendGem.filter(p => p.swap.modifiers.some(m => [
       GemModifier.MANA,
@@ -364,9 +372,19 @@ class AoTStrategy {
     const skillFireSpirit = _skills.find(s => FIRE_MANA_HERO.includes(s.hero.id))
     if (alliesFireSpirit && skillFireSpirit) {
       const totalRedItems = state.grid.gems.filter(g => g.modifier === GemType.RED).length
-      const enemiesMaybeDie = state.enemyPlayer.getHerosAlive().find( h => !(h.id === 'ELIZAH' && h.isFullMana()) && (h.attack + totalRedItems) >= h.hp);
-      if(enemiesMaybeDie) {
-        skillFireSpirit.targetId = enemiesMaybeDie.id;
+      const enemiesMaybeDies = state.enemyPlayer.getHerosAlive().filter( h => !(h.id === 'ELIZAH' && h.isFullMana()) && (h.attack + totalRedItems) >= h.hp);
+      if(enemiesMaybeDies.length) {
+        const enemiesMaybeDieHasSkill = enemiesMaybeDies.filter(h => h.isFullMana()).reduce(function (prev, current) {
+          return (prev?.hp || 0) > (current?.hp || 0) ? prev : current;
+        }, null);
+        if (enemiesMaybeDieHasSkill) {
+          skillFireSpirit.targetId = enemiesMaybeDieHasSkill.id;
+          return skillFireSpirit;
+        }
+        const enemiesMaybeDieMostHp = enemiesMaybeDies.reduce(function (prev, current) {
+          return (prev?.hp || 0) > (current?.hp || 0) ? prev : current;
+        }, null);
+        skillFireSpirit.targetId = enemiesMaybeDieMostHp.id;
         return skillFireSpirit;
       }
       // neu firespirit kill dc doi thu thi dung kill
