@@ -398,7 +398,7 @@ class AoTStrategy {
     const buffEnemies = state.enemyPlayer.getHerosAlive().filter(h => BUFF_HEROS.includes(h.id));
     if (
       buffEnemies.length
-      && buffEnemies.some(h.isFullMana())
+      && buffEnemies.some(h => h.isFullMana())
       && state.botPlayer.getHerosAlive().length > 1
       && alliesFireSpirit && alliesFireSpirit.hp > 15) skills = skills.filter(s => !FIRE_HP_BASE_ON_ENEMIES_ATK_HEROS.includes(s.hero.id));
     // neu fire spirit full mana thi ko buff

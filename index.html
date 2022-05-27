@@ -175,8 +175,9 @@
 			const strategyClass = window.strategies['aot'];
 
 			if(!strategyClass) {
-				console.log(`Strategy ${window.params.strategy} is not defined.`);
+				console.log(`Strategy aot is not defined.`);
 			} else {
+        console.log(`Strategy aot is selected.`);
 				window.strategy = strategyClass.factory();	
 			}
 		// }
