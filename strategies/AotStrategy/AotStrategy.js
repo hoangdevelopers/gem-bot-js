@@ -61,13 +61,29 @@ class AotFireSpiritSkill extends AotMove {
   type = "FIRE_SPIRIT_SKILL";
   isCastSkill = true;
   targetId;
-  constructor(hero, enemiesHeroAlive) {
+  constructor(hero, enemiesHeroAlive, state) {
     super();
     this.hero = hero;
-    const enemiesHeroAliveWithoutSupperTank = enemiesHeroAlive.filter(h => ![...SUPPER_TANK_HEROS, ...BUFF_HEROS].includes(h.id))
-    this.targetId = (enemiesHeroAliveWithoutSupperTank.length ? enemiesHeroAliveWithoutSupperTank : enemiesHeroAlive).reduce(function (prev, current) {
-      return ((prev?.attack || 0) > (current?.attack || 0)) ? prev : current;
+    const enemiesHeroAliveWithoutSupperTank = enemiesHeroAlive.filter(h => ![...SUPPER_TANK_HEROS].includes(h.id));
+    const totalRedItems = state.grid.gems.filter(g => g.modifier === GemType.RED).length
+    const enemyMaybeDies = enemiesHeroAliveWithoutSupperTank.filter(h => h.hp <= h.attack + totalRedItems);
+    const enemyHasSkill = enemyMaybeDies.filter(h => h.isFullMana()).reduce(function (prev, current) {
+      return ((prev?.hp || 0) > (current?.hp || 0)) ? prev : current;
     }, null).id;
+    const enemyMostHp = enemyMaybeDies.reduce(function (prev, current) {
+      return ((prev?.hp || 0) > (current?.hp || 0)) ? prev : current;
+    }, null).id;
+    if (enemyHasSkill) {
+      this.targetId = enemyHasSkill.id;
+    } else if (enemyMostHp) {
+      this.targetId = enemyMostHp.id;
+    } else {
+      const enemiesHeroAliveWithoutTank = enemiesHeroAlive.filter(h => ![...SUPPER_TANK_HEROS, ...BUFF_HEROS].includes(h.id));
+      this.targetId = (enemiesHeroAliveWithoutTank.length ? enemiesHeroAliveWithoutTank : enemiesHeroAlive).reduce(function (prev, current) {
+        return ((prev?.attack || 0) > (current?.attack || 0)) ? prev : current;
+      }, null).id;
+    }
+    
     console.log('AotFireSpiritSkill', this.targetId, enemiesHeroAlive)
   }
 }
@@ -524,7 +540,7 @@ class AoTStrategy {
       return [new AotAutoCastSkill(hero)];
     }
     if (hero.id === 'SEA_SPIRIT') return [new AotSeaSpiritSkill(hero, heroAlive)]
-    if (hero.id === 'FIRE_SPIRIT') return [new AotFireSpiritSkill(hero, enemiesHeroAlive)]
+    if (hero.id === 'FIRE_SPIRIT') return [new AotFireSpiritSkill(hero, enemiesHeroAlive, state)]
     return [];
   }
 
