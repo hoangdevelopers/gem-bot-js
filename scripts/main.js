@@ -521,5 +521,5 @@ function SelectGem() {
 
 	console.log("gemSelect : ", gemSelect);
 
-	return gemSelect;
+	return gemSelect || '';
 }
