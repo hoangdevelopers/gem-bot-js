@@ -69,10 +69,10 @@ class AotFireSpiritSkill extends AotMove {
     const enemyMaybeDies = enemiesHeroAliveWithoutSupperTank.filter(h => h.hp <= h.attack + totalRedItems);
     const enemyHasSkill = enemyMaybeDies.filter(h => h.isFullMana()).reduce(function (prev, current) {
       return ((prev?.hp || 0) > (current?.hp || 0)) ? prev : current;
-    }, null).id;
+    }, null)?.id;
     const enemyMostHp = enemyMaybeDies.reduce(function (prev, current) {
       return ((prev?.hp || 0) > (current?.hp || 0)) ? prev : current;
-    }, null).id;
+    }, null)?.id;
     if (enemyHasSkill) {
       this.targetId = enemyHasSkill.id;
     } else if (enemyMostHp) {
