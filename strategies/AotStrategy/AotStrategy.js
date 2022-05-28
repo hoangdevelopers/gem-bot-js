@@ -78,10 +78,15 @@ class AotFireSpiritSkill extends AotMove {
     } else if (enemyMostHp) {
       this.targetId = enemyMostHp.id;
     } else {
-      const enemiesHeroAliveWithoutTank = enemiesHeroAlive.filter(h => ![...SUPPER_TANK_HEROS, ...BUFF_HEROS].includes(h.id));
-      this.targetId = (enemiesHeroAliveWithoutTank.length ? enemiesHeroAliveWithoutTank : enemiesHeroAlive).reduce(function (prev, current) {
-        return ((prev?.attack || 0) > (current?.attack || 0)) ? prev : current;
-      }, null).id;
+      const nefia = enemiesHeroAlive.find(h => h.id === 'AIR_SPIRIT');
+      if (nefia) {
+        this.targetId = nefia.id
+      } else {
+        const enemiesHeroAliveWithoutTank = enemiesHeroAlive.filter(h => ![...SUPPER_TANK_HEROS, ...BUFF_HEROS].includes(h.id));
+        this.targetId = (enemiesHeroAliveWithoutTank.length ? enemiesHeroAliveWithoutTank : enemiesHeroAlive).reduce(function (prev, current) {
+          return ((prev?.attack || 0) > (current?.attack || 0)) ? prev : current;
+        }, null).id;
+      }
     }
     
     console.log('AotFireSpiritSkill', this.targetId, enemiesHeroAlive)
