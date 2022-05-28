@@ -362,13 +362,16 @@ class AoTStrategy {
     }, null);
     if (posContainRecommendGemHasHpManaAtk) return posContainRecommendGemHasHpManaAtk;
     // an 4 gems tro xuong
+    let posContainRecommendGem2 = null;
     for (const hero of state.botPlayer.getHerosAlive()) {
-      if (hero.hp < 9) continue;
-      const posContainRecommendGem2 = posContainRecommendGem.filter(p => hero.gemTypes.includes(p.swap.type)).reduce(function (prev, current) {
-        return (prev?.swap?.sizeMatch || 0) > (current?.swap?.sizeMatch || 0) ? prev : current;
-      }, null);
-      if(posContainRecommendGem2) return posContainRecommendGem2;
+      if (!posContainRecommendGem2 && hero.hp > 9) {
+        posContainRecommendGem2 = posContainRecommendGem.filter(p => hero.gemTypes.includes(p.swap.type)).reduce(function (prev, current) {
+          return (prev?.swap?.sizeMatch || 0) > (current?.swap?.sizeMatch || 0) ? prev : current;
+        }, null);
+      }
     }
+    if(posContainRecommendGem2) return posContainRecommendGem2;
+
     // neu all allies it mau uu tien an kiem 
     if (state.botPlayer.getHerosAlive().every(h => h.hp < 10) && swordGems.length) {
       return swordGems.reduce(function (prev, current) {
