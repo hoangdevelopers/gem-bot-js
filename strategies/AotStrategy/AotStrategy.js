@@ -363,7 +363,7 @@ class AoTStrategy {
     if (posContainRecommendGemHasHpManaAtk) return posContainRecommendGemHasHpManaAtk;
     // an 4 gems tro xuong
     for (const hero of state.botPlayer.getHerosAlive()) {
-      if (hero.hp < 10) continue;
+      if (hero.hp < 9) continue;
       const posContainRecommendGem2 = posContainRecommendGem.filter(p => hero.gemTypes.includes(p.swap.type)).reduce(function (prev, current) {
         return (prev?.swap?.sizeMatch || 0) > (current?.swap?.sizeMatch || 0) ? prev : current;
       }, null);
